@@ -1,4 +1,7 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+const API_URL =
+  process.env.BACKEND_URL ||
+  process.env.NEXT_PUBLIC_API_URL ||
+  "http://localhost:8000";
 
 export type LeadState = "PENDING" | "REACHED_OUT";
 
@@ -67,8 +70,4 @@ export async function updateLeadState(
   });
   if (!res.ok) throw new Error("Failed to update lead state");
   return res.json();
-}
-
-export function resumeUrl(leadId: string, token: string): string {
-  return `${API_URL}/api/v1/leads/${leadId}/resume?token=${encodeURIComponent(token)}`;
 }

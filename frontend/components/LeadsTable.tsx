@@ -6,8 +6,6 @@ import type { Lead } from "@/lib/api";
 import { updateLeadState } from "@/lib/api";
 import StatusBadge from "./StatusBadge";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-
 interface Props {
   leads: Lead[];
   token: string;
@@ -17,6 +15,29 @@ export default function LeadsTable({ leads, token }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  async function handleDownloadResume(leadId: string) {
+    try {
+      const res = await fetch(`/api/v1/leads/${leadId}/resume`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to fetch resume");
+
+      const contentDisposition = res.headers.get("content-disposition") ?? "";
+      const fileNameMatch = contentDisposition.match(/filename="?([^";\n]+)"?/);
+      const fileName = fileNameMatch?.[1] ?? `resume-${leadId}`;
+
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const anchor = document.createElement("a");
+      anchor.href = url;
+      anchor.download = fileName;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      setError("Failed to download resume. Please try again.");
+    }
+  }
 
   async function handleMarkReachedOut(leadId: string) {
     setLoading(leadId);
@@ -98,14 +119,12 @@ export default function LeadsTable({ leads, token }: Props) {
                   })}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <a
-                    href={`${API_URL}/api/v1/leads/${lead.id}/resume`}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    onClick={() => handleDownloadResume(lead.id)}
                     className="text-sm text-blue-600 hover:underline"
                   >
                     Download
-                  </a>
+                  </button>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-right">
                   {lead.state === "PENDING" ? (

@@ -11,17 +11,17 @@ const schema = z.object({
   last_name: z.string().min(1, "Last name is required"),
   email: z.string().email("Valid email is required"),
   resume: z
-    .instanceof(FileList)
-    .refine((f) => f.length === 1, "Resume is required")
+    .custom<FileList>((val) => val != null && typeof val === "object")
+    .refine((f: FileList) => f.length === 1, "Resume is required")
     .refine(
-      (f) =>
+      (f: FileList) =>
         ["application/pdf", "application/msword",
          "application/vnd.openxmlformats-officedocument.wordprocessingml.document"].includes(
           f[0]?.type
         ),
       "Only PDF or DOCX files are accepted"
     )
-    .refine((f) => (f[0]?.size ?? 0) <= 10 * 1024 * 1024, "File must be under 10 MB"),
+    .refine((f: FileList) => (f[0]?.size ?? 0) <= 10 * 1024 * 1024, "File must be under 10 MB"),
 });
 
 type FormValues = z.infer<typeof schema>;
