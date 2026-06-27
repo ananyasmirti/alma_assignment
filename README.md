@@ -206,6 +206,52 @@ The frontend is now available at http://localhost:3000.
 
 ---
 
+## Resend Email Setup
+
+The app sends two transactional emails via [Resend](https://resend.com):
+
+- **Prospect confirmation** — sent to the applicant after they submit the form.
+- **Attorney notification** — sent to `ATTORNEY_EMAIL` whenever a new lead arrives, with a link to the dashboard.
+
+Email is **optional for local development** — if `RESEND_API_KEY` is not set, both sends are silently skipped and logged.
+
+### Steps to enable email
+
+**1. Create a free Resend account**
+
+Go to https://resend.com and sign up. The free tier allows 3,000 emails/month.
+
+**2. Add and verify a sending domain**
+
+In the Resend dashboard go to **Domains → Add Domain** and follow the DNS verification steps for your domain. Until the domain is verified you can only send to your own Resend account email.
+
+> For quick local testing you can skip domain verification and use `onboarding@resend.dev` as `EMAIL_FROM` — Resend provides this address on all accounts and it delivers only to the account owner's email.
+
+**3. Create an API key**
+
+Go to **API Keys → Create API Key**. Give it a name (e.g. `alma-local`) and copy the key — it is shown only once.
+
+**4. Set the environment variables**
+
+In `.env` (local) or your Docker/deployment env:
+
+```dotenv
+RESEND_API_KEY=re_...                    # the key you just copied
+EMAIL_FROM=noreply@yourdomain.com        # must match your verified domain
+ATTORNEY_EMAIL=attorney@yourdomain.com   # inbox that receives new-lead alerts
+```
+
+**5. Verify it works**
+
+Submit a test lead through http://localhost:3000/apply. You should see:
+
+- A confirmation email in the prospect's inbox.
+- A new-lead notification in `ATTORNEY_EMAIL`'s inbox.
+
+If emails are not arriving, check the **Logs** tab in the Resend dashboard for delivery errors.
+
+---
+
 ## Running Tests
 
 Tests run against an in-memory SQLite database. No running PostgreSQL or external services needed.
